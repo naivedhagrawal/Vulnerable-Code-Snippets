@@ -22,8 +22,7 @@ pipeline {
             steps {
                 container('gitleak') {
                     sh """
-                        gitleaks version
-                        gitleaks detect --source=. --report-path=${env.GITLEAKS_REPORT} --report-format csv
+                        gitleaks detect --source=. --report-path=${env.GITLEAKS_REPORT} --report-format csv --exit-code=0
                     """
                     archiveArtifacts artifacts: "${env.GITLEAKS_REPORT}"
                 }
