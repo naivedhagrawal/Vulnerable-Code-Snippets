@@ -4,7 +4,7 @@ pipeline {
     agent none
     environment {
         GITLEAKS_REPORT = 'gitleaks-report.csv'
-        OWASP_DEP_REPORT = 'owasp-dep-report.md'
+        OWASP_DEP_REPORT = 'owasp-dep-report.jenkins'
         ZAP_REPORT = 'zap-out.html'
         SEMGREP_REPORT = 'semgrep-report.text'
         TARGET_URL = 'https://juice-shop.herokuapp.com/'
@@ -39,7 +39,7 @@ pipeline {
             container('owasp') {
                 withCredentials([string(credentialsId: 'NVD_API_KEY', variable: 'NVD_API_KEY')]) {
                 sh """
-                    dependency-check --scan . --format markdown --out ${env.OWASP_DEP_REPORT} --nvdApiKey ${env.NVD_API_KEY}
+                    dependency-check --scan . --format JENKINS --out ${env.OWASP_DEP_REPORT} --nvdApiKey ${env.NVD_API_KEY}
                 """
                 archiveArtifacts artifacts: "${env.OWASP_DEP_REPORT}"
 
