@@ -6,7 +6,7 @@ pipeline {
         GITLEAKS_REPORT = 'gitleaks-report.csv'
         OWASP_DEP_REPORT = 'owasp-dep-report.html'
         ZAP_REPORT = 'zap-out.html'
-        SEMGREP_REPORT = 'semgrep-report.text'
+        SEMGREP_REPORT = 'semgrep-report.json'
         TARGET_URL = 'https://juice-shop.herokuapp.com/'
         }
 
@@ -72,7 +72,7 @@ pipeline {
             steps {
             container('semgrep') {
                 sh """
-                semgrep --config=auto --text --output ${env.SEMGREP_REPORT} .
+                semgrep --config=auto --json --output ${env.SEMGREP_REPORT} .
                 """
                 archiveArtifacts artifacts: "${env.SEMGREP_REPORT}"
 
