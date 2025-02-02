@@ -4,7 +4,7 @@ pipeline {
     agent none
     environment {
         GITLEAKS_REPORT = 'gitleaks-report.csv'
-        OWASP_DEP_REPORT = 'owasp-dep-report.jenkins'
+        OWASP_DEP_REPORT = 'dependency-check-jenkins.html'
         ZAP_REPORT = 'zap-out.html'
         SEMGREP_REPORT = 'semgrep-report.text'
         TARGET_URL = 'https://juice-shop.herokuapp.com/'
