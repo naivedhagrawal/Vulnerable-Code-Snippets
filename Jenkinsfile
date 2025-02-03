@@ -69,7 +69,7 @@ pipeline {
                 """
                 recordIssues(
                         enabledForFailure: true,
-                        tool: sarif(pattern: "${env.SEMGREP_REPORT}", id: "sengrep-SARIF", name: "semgrep-Report") )
+                        tool: sarif(pattern: "${env.SEMGREP_REPORT}", id: "semgrep-SARIF", name: "semgrep-Report") )
                 archiveArtifacts artifacts: "${env.SEMGREP_REPORT}"
             }
             }
