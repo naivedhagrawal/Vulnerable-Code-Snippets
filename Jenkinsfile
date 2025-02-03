@@ -99,22 +99,37 @@ pipeline {
         stage('Process and Insert JSON') {  // Combined stage
             agent{
                 kubernetes {
-                    yaml pod('python','python:latest')
+                    yaml python_postgres()
                 }
             }
             steps {
                 script {
-                    def jsonFile = '$WORKSPACE/env.SEMGREP_REPORT'
-                    def tableName = env.PROJECT_NAME // Access environment variable
-                    def jsonColumn = 'json_report_data' // Use underscores for column names (best practice)
+                    def jsonFile = "${WORKSPACE}/env.SEMGREP_REPORT"
+                    def tableName = env.PROJECT_NAME
+                    def jsonColumn = 'json_report_data'
                     def dbUser = 'postgres'
                     def dbPassword = credentials('postgres_password')
                     def dbName = 'semgrep'
-                    def dbHost = 'postgres.devops-tools.svc.cluster.local:5432'
+                    def dbHost = 'postgres.devops-tools.svc.cluster.local'
+                    def dbPort = '5432'
 
-                    // Combined SQL for table creation and insertion
-                    def combinedSQL = """
-                        DO \$\$
+                    // Process JSON data using Python
+                    container('python') {
+                        sh """
+                        python -c "
+                        import json
+                        with open('${jsonFile}', 'r') as f:
+                            data = json.load(f)
+                        # Perform any necessary processing on the data
+                        with open('${jsonFile}', 'w') as f:
+                            json.dump(data, f)
+                        "
+                        """
+                    }
+
+                    // SQL for table creation and insertion
+                    def sqlCommands = """
+                        DO $$
                         BEGIN
                             IF NOT EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = '${tableName}') THEN
                                 CREATE TABLE ${tableName} (
@@ -122,50 +137,21 @@ pipeline {
                                     ${jsonColumn} JSONB
                                 );
                             END IF;
-
-                            -- Now, dynamically construct the INSERT statement based on JSON content
-                            PERFORM populate_table('${jsonFile}', '${tableName}', '${jsonColumn}', '${dbUser}', '${dbPassword}', '${dbName}', '${dbHost}');
-
-                        END \$\$;
+                        END $$;
                     """
 
-                    // Create a PL/pgSQL function to handle the dynamic insertion
-                    def createFunctionSQL = """
-                        CREATE OR REPLACE FUNCTION populate_table(json_file_path TEXT, target_table TEXT, json_column_name TEXT, db_user TEXT, db_password TEXT, db_name TEXT, db_host TEXT)
-                        RETURNS VOID AS \$\$
-                        DECLARE
-                            json_data jsonb;
-                            item jsonb;
-                        BEGIN
-                            -- Read the JSON file (you may need to adjust this based on how your agent accesses the file)
-                            EXECUTE format('SELECT pg_read_file(''%s'')', json_file_path) INTO json_data;
-
-                            -- Connect to the database
-                            PERFORM dblink_connect('host=' || db_host || ' dbname=' || db_name || ' user=' || db_user || ' password=' || db_password);
-
-                            -- Handle JSON array or single object
-                            IF json_data IS NOT NULL THEN
-                            IF json_data IS NOT NULL AND json_data::text LIKE '[' || '%' || ']' THEN -- JSON array
-                                FOR item IN SELECT json_array_elements(json_data) LOOP
-                                    EXECUTE format('INSERT INTO %I (%I) VALUES (\$1::jsonb);', target_table, json_column_name) USING item;
-                                END LOOP;
-                            ELSE -- Single JSON object
-                                EXECUTE format('INSERT INTO %I (%I) VALUES (\$1::jsonb);', target_table, json_column_name) USING json_data;
-                            END IF;
-                            END IF;
-                            PERFORM dblink_disconnect();
-                        END;
-                        \$\$ LANGUAGE plpgsql;
+                    def insertSQL = """
+                        INSERT INTO ${tableName} (${jsonColumn})
+                        SELECT jsonb_strip_nulls(pg_read_file('${jsonFile}')::jsonb);
                     """
 
-                    sh """
-                        psql -U ${dbUser} -d ${dbName} -h ${dbHost} -w -v ON_ERROR_STOP=1 -c "${createFunctionSQL}"
-                    """
-
-                    sh """
-                        psql -U ${dbUser} -d ${dbName} -h ${dbHost} -w -v ON_ERROR_STOP=1 -c "${combinedSQL}"
-                    """
-
+                    container('postgres') {
+                        sh """
+                            export PGPASSWORD=${dbPassword}
+                            psql -U ${dbUser} -d ${dbName} -h ${dbHost} -p ${dbPort} -v ON_ERROR_STOP=1 -c "${sqlCommands}"
+                            psql -U ${dbUser} -d ${dbName} -h ${dbHost} -p ${dbPort} -v ON_ERROR_STOP=1 -c "${insertSQL}"
+                        """
+                    }
                 }
             }
         }
