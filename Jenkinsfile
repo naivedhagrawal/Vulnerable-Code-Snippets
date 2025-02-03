@@ -7,7 +7,7 @@ pipeline {
         GITLEAKS_REPORT = 'gitleaks-report.sarif'
         OWASP_DEP_REPORT = 'owasp-dep-report.sarif'
         ZAP_REPORT = 'zap-out.html'
-        SEMGREP_REPORT = 'semgrep-report.json'
+        SEMGREP_REPORT = 'semgrep-report.sarif'
         TARGET_URL = 'https://juice-shop.herokuapp.com/'
         DB_URL = 'jdbc:postgresql://postgres.devops-tools.svc.cluster.local:5432/postgres'
         }
@@ -51,21 +51,6 @@ pipeline {
                         enabledForFailure: true,
                         tool: sarif(pattern: "${env.OWASP_DEP_REPORT}") )
                 archiveArtifacts artifacts: "${env.OWASP_DEP_REPORT}"
-
-                // script {
-                //     def owaspReport = readJSON file: "${env.OWASP_DEP_REPORT}"
-                //     def vulnerabilities = owaspReport.report.dependencies.collectMany { it.vulnerabilities }.findAll { it.severity == 'HIGH' || it.severity == 'CRITICAL' }
-
-                //     if (vulnerabilities.size() > 0) {
-                //     echo "High/Critical OWASP Vulnerabilities Found:"
-                //     vulnerabilities.each { vuln ->
-                //         echo "Dependency: ${vuln.name} - ${vuln.description} - CVE: ${vuln.cve}"
-                //     }
-                //     currentBuild.result = 'FAILURE'
-                //     } else {
-                //     echo "No High/Critical OWASP vulnerabilities found."
-                //     }
-                // }
                 }
             }
             }
@@ -81,24 +66,12 @@ pipeline {
             steps {
             container('semgrep') {
                 sh """
-                semgrep --config=auto --json --output ${env.SEMGREP_REPORT} .
+                semgrep --config=auto --sarif --output ${env.SEMGREP_REPORT} .
                 """
+                recordIssues(
+                        enabledForFailure: true,
+                        tool: sarif(pattern: "${env.SEMGREP_REPORT}") )
                 archiveArtifacts artifacts: "${env.SEMGREP_REPORT}"
-
-                // script {
-                // def semgrepReport = readJSON file: "${env.SEMGREP_REPORT}"
-                // def criticalIssues = semgrepReport.results.findAll { it.severity == 'ERROR' || it.severity == 'WARNING' }
-
-                // if (criticalIssues.size() > 0) {
-                //     echo "Critical/Warning Semgrep Issues Found:"
-                //     criticalIssues.each { issue ->
-                //     echo "File: ${issue.path}:${issue.start.line} - ${issue.message} - Rule: ${issue.check_id}"
-                //     }
-                //     currentBuild.result = 'FAILURE'
-                // } else {
-                //     echo "No Critical/Warning Semgrep issues found."
-                // }
-                // }
             }
             }
         }
