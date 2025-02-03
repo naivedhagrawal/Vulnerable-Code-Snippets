@@ -155,15 +155,16 @@ pipeline {
 
                     sh """
                         psql -U ${dbUser} -d ${dbName} -h ${dbHost} -w -v ON_ERROR_STOP=1 -c "${createFunctionSQL}"
-                    """, credentialsId: 'postgres_password'
+                    """
 
                     sh """
                         psql -U ${dbUser} -d ${dbName} -h ${dbHost} -w -v ON_ERROR_STOP=1 -c "${combinedSQL}"
-                    """, credentialsId: 'postgres_password'
+                    """
 
                 }
             }
         }
+
 
 
         stage('Owasp zap') {
