@@ -28,8 +28,7 @@ pipeline {
                     """
                     recordIssues(
                         enabledForFailure: true,
-                        tool: sarif(pattern: "${env.GITLEAKS_REPORT}", id: "gitLeaks-SARIF")
-                        name: "GitLeaks Report"
+                        tool: sarif(pattern: "${env.GITLEAKS_REPORT}", id: "gitLeaks-SARIF", name: "GitLeaks Report" )
                         )
                     archiveArtifacts artifacts: "${env.GITLEAKS_REPORT}"
                 }
