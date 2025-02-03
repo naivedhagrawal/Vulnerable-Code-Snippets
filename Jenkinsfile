@@ -3,7 +3,6 @@
 pipeline {
     agent none
     environment {
-        PROJECT_NAME = 'VCS'
         GITLEAKS_REPORT = 'gitleaks-report.sarif'
         OWASP_DEP_REPORT = 'owasp-dep-report.sarif'
         ZAP_REPORT = 'zap-out.html'
