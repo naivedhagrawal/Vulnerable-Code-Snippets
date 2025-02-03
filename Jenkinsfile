@@ -65,7 +65,7 @@ pipeline {
             steps {
             container('semgrep') {
                 sh """
-                semgrep --config=auto --metrics=off --sarif --output ${env.SEMGREP_REPORT} .
+                semgrep --config=auto --sarif --output ${env.SEMGREP_REPORT} .
                 """
                 recordIssues(
                         enabledForFailure: true,
