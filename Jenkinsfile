@@ -87,6 +87,7 @@ pipeline {
                 // zap-api-scan.py zap-baseline.py zap-full-scan.py zap_common.py 
                 sh """
                     zap-baseline.py -t $TARGET_URL -g gen txt -r $ZAP_REPORT -l WARN -I
+                    true
                     mv /zap/wrk/${ZAP_REPORT} .
                 """
                 recordIssues(
