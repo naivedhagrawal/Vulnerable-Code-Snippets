@@ -129,7 +129,7 @@ pipeline {
 
                     // SQL for table creation and insertion
                     def sqlCommands = """
-                        DO $$
+                        DO \$\$
                         BEGIN
                             IF NOT EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = '${tableName}') THEN
                                 CREATE TABLE ${tableName} (
