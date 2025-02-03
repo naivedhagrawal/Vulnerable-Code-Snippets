@@ -89,9 +89,7 @@ pipeline {
                     zap-baseline.py -t $TARGET_URL -w $ZAP_REPORT -l WARN -I
                     mv /zap/wrk/${ZAP_REPORT} .
                 """
-                recordIssues(
-                        enabledForFailure: true,
-                        tool: zapReport(pattern: "${env.ZAP_REPORT}", id: "ZAP-SARIF", name: "ZAP-Report" ))
+                
                 archiveArtifacts artifacts: "${env.ZAP_REPORT}"
             }
             }
