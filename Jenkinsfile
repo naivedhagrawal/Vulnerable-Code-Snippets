@@ -92,7 +92,7 @@ pipeline {
                 """
                 recordIssues(
                         enabledForFailure: true,
-                        tool: sarif(pattern: "${env.GITLEAKS_REPORT}", id: "gitLeaks-SARIF", name: "ZAP-Report" ))
+                        tool: sarif(pattern: "${env.ZAP_REPORT}", id: "ZAP-SARIF", name: "ZAP-Report" ))
                 archiveArtifacts artifacts: "${env.ZAP_REPORT}"
             }
             }
