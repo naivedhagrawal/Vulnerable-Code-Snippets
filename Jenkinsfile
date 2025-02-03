@@ -134,10 +134,10 @@ pipeline {
                             IF NOT EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = '${tableName}') THEN
                                 CREATE TABLE ${tableName} (
                                     id SERIAL PRIMARY KEY,
-                                    ${jsonColumn} JSONB
+                                    """ + jsonColumn + """ JSONB
                                 );
                             END IF;
-                        END $$;
+                        END \$\$;
                     """
 
                     def insertSQL = """
