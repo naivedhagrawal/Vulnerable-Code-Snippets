@@ -4,7 +4,7 @@ pipeline {
     agent none
     environment {
         PROJECT_NAME = 'VCS'
-        GITLEAKS_REPORT = 'gitleaks-report.csv'
+        GITLEAKS_REPORT = 'gitleaks-report.sarif'
         OWASP_DEP_REPORT = 'owasp-dep-report.html'
         ZAP_REPORT = 'zap-out.html'
         SEMGREP_REPORT = 'semgrep-report.json'
@@ -24,7 +24,7 @@ pipeline {
             steps {
                 container('gitleak') {
                     sh """
-                        gitleaks detect --source=. --report-path=${env.GITLEAKS_REPORT} --report-format csv --exit-code=0
+                        gitleaks detect --source=. --report-path=${env.GITLEAKS_REPORT} --report-format sarif --exit-code=0
                     """
                     archiveArtifacts artifacts: "${env.GITLEAKS_REPORT}"
                 }
