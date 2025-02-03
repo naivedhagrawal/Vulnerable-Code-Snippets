@@ -26,10 +26,14 @@ pipeline {
                     sh """
                         gitleaks detect --source=. --report-path=${env.GITLEAKS_REPORT} --report-format sarif --exit-code=0
                     """
+                    recordIssues(
+                        enabledForFailure: true,
+                        tool: sarif(pattern: "${env.GITLEAKS_REPORT}") )
                     archiveArtifacts artifacts: "${env.GITLEAKS_REPORT}"
                 }
             }
         }
+        
         stage('Owasp Dependency Check') {
             agent {
                 kubernetes {
