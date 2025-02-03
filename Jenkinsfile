@@ -6,7 +6,7 @@ pipeline {
         PROJECT_NAME = 'VCS'
         GITLEAKS_REPORT = 'gitleaks-report.sarif'
         OWASP_DEP_REPORT = 'owasp-dep-report.sarif'
-        ZAP_REPORT = 'zap-out.html'
+        ZAP_REPORT = 'zap-out.json'
         SEMGREP_REPORT = 'semgrep-report.sarif'
         TARGET_URL = 'https://juice-shop.herokuapp.com/'
         }
@@ -86,10 +86,13 @@ pipeline {
             container('zap') {
                 // zap-api-scan.py zap-baseline.py zap-full-scan.py zap_common.py 
                 sh """
-                    zap-baseline.py -t $TARGET_URL -r $ZAP_REPORT -l WARN -I
+                    zap-baseline.py -t $TARGET_URL -J $ZAP_REPORT -l WARN -I
+                    pip install zap2sarif
+                    zap2sarif -i zap-report.json -o zap-report.sarif
                     mv /zap/wrk/${ZAP_REPORT} .
                 """
                 archiveArtifacts artifacts: "${env.ZAP_REPORT}"
+                archiveArtifacts artifacts: 'zap-report.sarif'
             }
             }
         }
