@@ -5,7 +5,7 @@ pipeline {
     environment {
         PROJECT_NAME = 'VCS'
         GITLEAKS_REPORT = 'gitleaks-report.sarif'
-        OWASP_DEP_REPORT = 'owasp-dep-report.html'
+        OWASP_DEP_REPORT = 'owasp-dep-report.sarif'
         ZAP_REPORT = 'zap-out.html'
         SEMGREP_REPORT = 'semgrep-report.json'
         TARGET_URL = 'https://juice-shop.herokuapp.com/'
@@ -45,8 +45,11 @@ pipeline {
             container('owasp') {
                 withCredentials([string(credentialsId: 'NVD_API_KEY', variable: 'NVD_API_KEY')]) {
                 sh """
-                    dependency-check --scan . --out ${env.OWASP_DEP_REPORT} --nvdApiKey ${env.NVD_API_KEY}
+                    dependency-check --scan . --format SARIF --out ${env.OWASP_DEP_REPORT} --nvdApiKey ${env.NVD_API_KEY}
                 """
+                recordIssues(
+                        enabledForFailure: true,
+                        tool: sarif(pattern: "${env.OWASP_DEP_REPORT}") )
                 archiveArtifacts artifacts: "${env.OWASP_DEP_REPORT}"
 
                 // script {
