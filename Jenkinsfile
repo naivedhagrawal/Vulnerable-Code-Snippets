@@ -6,7 +6,7 @@ pipeline {
         PROJECT_NAME = 'VCS'
         GITLEAKS_REPORT = 'gitleaks-report.sarif'
         OWASP_DEP_REPORT = 'owasp-dep-report.sarif'
-        ZAP_REPORT = 'zap-out.txt'
+        ZAP_REPORT = 'zap-out.sarif'
         SEMGREP_REPORT = 'semgrep-report.sarif'
         TARGET_URL = 'https://juice-shop.herokuapp.com/'
         }
@@ -86,8 +86,7 @@ pipeline {
             container('zap') {
                 // zap-api-scan.py zap-baseline.py zap-full-scan.py zap_common.py 
                 sh """
-                    zap-baseline.py -t $TARGET_URL -g gen txt -r $ZAP_REPORT -l WARN -I
-                    true
+                    zap-baseline.py -t $TARGET_URL -g gen%sarif -r $ZAP_REPORT -l WARN -I
                     mv /zap/wrk/${ZAP_REPORT} .
                 """
                 recordIssues(
