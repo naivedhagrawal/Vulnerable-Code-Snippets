@@ -28,7 +28,7 @@ pipeline {
                     """
                     recordIssues(
                         enabledForFailure: true,
-                        tool: sarif(pattern: "${env.GITLEAKS_REPORT}") )
+                        tool: sarif(pattern: "${env.GITLEAKS_REPORT}", id: "gitLeaks-SARIF") )
                     archiveArtifacts artifacts: "${env.GITLEAKS_REPORT}"
                 }
             }
@@ -49,7 +49,7 @@ pipeline {
                 """
                 recordIssues(
                         enabledForFailure: true,
-                        tool: sarif(pattern: "${env.OWASP_DEP_REPORT}") )
+                        tool: sarif(pattern: "${env.OWASP_DEP_REPORT}", id: "owasp-dependency-check-SARIF") )
                 archiveArtifacts artifacts: "${env.OWASP_DEP_REPORT}"
                 }
             }
@@ -70,7 +70,7 @@ pipeline {
                 """
                 recordIssues(
                         enabledForFailure: true,
-                        tool: sarif(pattern: "${env.SEMGREP_REPORT}") )
+                        tool: sarif(pattern: "${env.SEMGREP_REPORT}", id: "sengrep-SARIF") )
                 archiveArtifacts artifacts: "${env.SEMGREP_REPORT}"
             }
             }
