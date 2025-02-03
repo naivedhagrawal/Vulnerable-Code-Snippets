@@ -97,6 +97,11 @@ pipeline {
         }
 
         stage('Process and Insert JSON') {  // Combined stage
+            agent{
+                kubernetes {
+                    yaml pod('python','python:latest')
+                }
+            }
             steps {
                 script {
                     def jsonFile = '$WORKSPACE/env.SEMGREP_REPORT'
