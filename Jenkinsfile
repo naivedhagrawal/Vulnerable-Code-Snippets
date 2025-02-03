@@ -142,10 +142,10 @@ pipeline {
                             IF json_data IS NOT NULL THEN
                             IF json_data IS NOT NULL AND json_data::text LIKE '[' || '%' || ']' THEN -- JSON array
                                 FOR item IN SELECT json_array_elements(json_data) LOOP
-                                    EXECUTE format('INSERT INTO %I (%I) VALUES ($1::jsonb);', target_table, json_column_name) USING item;
+                                    EXECUTE format('INSERT INTO %I (%I) VALUES (\$1::jsonb);', target_table, json_column_name) USING item;
                                 END LOOP;
                             ELSE -- Single JSON object
-                                EXECUTE format('INSERT INTO %I (%I) VALUES ($1::jsonb);', target_table, json_column_name) USING json_data;
+                                EXECUTE format('INSERT INTO %I (%I) VALUES (\$1::jsonb);', target_table, json_column_name) USING json_data;
                             END IF;
                             END IF;
                             PERFORM dblink_disconnect();
