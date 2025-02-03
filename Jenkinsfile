@@ -84,14 +84,13 @@ pipeline {
             }
             steps {
             container('zap') {
-                // zap-api-scan.py zap-baseline.py zap-full-scan.py zap_common.py 
+                // zap-api-scan.py zap-baseline.py zap-full-scan.py zap_common.py  archiveArtifacts artifacts: "${env.ZAP_REPORT}"
                 sh """
                     zap-baseline.py -t $TARGET_URL -J $ZAP_REPORT -l WARN -I
-                    pip install zap2sarif
                     zap2sarif -i zap-report.json -o zap-report.sarif
                     mv /zap/wrk/${ZAP_REPORT} .
+                    mv /zap/wrk/zap-report.sarif .
                 """
-                archiveArtifacts artifacts: "${env.ZAP_REPORT}"
                 archiveArtifacts artifacts: 'zap-report.sarif'
             }
             }
