@@ -89,7 +89,7 @@ pipeline {
             container('zap') {
                 // zap-api-scan.py zap-baseline.py zap-full-scan.py zap_common.py 
                 sh """
-                    zap-full-scan.py -t $TARGET_URL -r $ZAP_REPORT -l WARN -I
+                    zap-baseline.py -t $TARGET_URL -r $ZAP_REPORT -l WARN -I
                     mv /zap/wrk/${ZAP_REPORT} .
                 """
                 archiveArtifacts artifacts: "${env.ZAP_REPORT}"
