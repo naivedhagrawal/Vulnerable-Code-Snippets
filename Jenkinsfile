@@ -109,7 +109,7 @@ pipeline {
 
                     // Combined SQL for table creation and insertion
                     def combinedSQL = """
-                        DO $$
+                        DO \$\$
                         BEGIN
                             IF NOT EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = '${tableName}') THEN
                                 CREATE TABLE ${tableName} (
@@ -121,13 +121,13 @@ pipeline {
                             -- Now, dynamically construct the INSERT statement based on JSON content
                             PERFORM populate_table('${jsonFile}', '${tableName}', '${jsonColumn}', '${dbUser}', '${dbPassword}', '${dbName}', '${dbHost}');
 
-                        END $$;
+                        END \$\$;
                     """
 
                     // Create a PL/pgSQL function to handle the dynamic insertion
                     def createFunctionSQL = """
                         CREATE OR REPLACE FUNCTION populate_table(json_file_path TEXT, target_table TEXT, json_column_name TEXT, db_user TEXT, db_password TEXT, db_name TEXT, db_host TEXT)
-                        RETURNS VOID AS $$
+                        RETURNS VOID AS \$\$
                         DECLARE
                             json_data jsonb;
                             item jsonb;
@@ -140,19 +140,18 @@ pipeline {
 
                             -- Handle JSON array or single object
                             IF json_data IS NOT NULL THEN
-                              IF json_data IS NOT NULL AND json_data::text LIKE '[' || '%' || ']' THEN -- JSON array
+                            IF json_data IS NOT NULL AND json_data::text LIKE '[' || '%' || ']' THEN -- JSON array
                                 FOR item IN SELECT json_array_elements(json_data) LOOP
                                     EXECUTE format('INSERT INTO %I (%I) VALUES ($1::jsonb);', target_table, json_column_name) USING item;
                                 END LOOP;
-                              ELSE -- Single JSON object
-                                  EXECUTE format('INSERT INTO %I (%I) VALUES ($1::jsonb);', target_table, json_column_name) USING json_data;
-                              END IF;
+                            ELSE -- Single JSON object
+                                EXECUTE format('INSERT INTO %I (%I) VALUES ($1::jsonb);', target_table, json_column_name) USING json_data;
+                            END IF;
                             END IF;
                             PERFORM dblink_disconnect();
                         END;
-                        $$ LANGUAGE plpgsql;
+                        \$\$ LANGUAGE plpgsql;
                     """
-
 
                     sh """
                         psql -U ${dbUser} -d ${dbName} -h ${dbHost} -w -v ON_ERROR_STOP=1 -c "${createFunctionSQL}"
@@ -165,6 +164,7 @@ pipeline {
                 }
             }
         }
+
 
         stage('Owasp zap') {
             agent {
