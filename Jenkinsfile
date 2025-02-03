@@ -96,68 +96,6 @@ pipeline {
             }
         }
 
-        stage('Process and Insert JSON') {  // Combined stage
-            agent{
-                kubernetes {
-                    yaml python_postgres()
-                }
-            }
-            steps {
-                script {
-                    def jsonFile = "${WORKSPACE}/env.SEMGREP_REPORT"
-                    def tableName = env.PROJECT_NAME
-                    def jsonColumn = 'json_report_data'
-                    def dbUser = 'postgres'
-                    def dbPassword = credentials('postgres_password')
-                    def dbName = 'semgrep'
-                    def dbHost = 'postgres.devops-tools.svc.cluster.local'
-                    def dbPort = '5432'
-
-                    // Process JSON data using Python
-                    container('python') {
-                        sh """
-                        python -c "
-                        import json
-                        with open('${jsonFile}', 'r') as f:
-                            data = json.load(f)
-                        # Perform any necessary processing on the data
-                        with open('${jsonFile}', 'w') as f:
-                            json.dump(data, f)
-                        "
-                        """
-                    }
-
-                    // SQL for table creation and insertion
-                    def sqlCommands = """
-                        DO \$\$
-                        BEGIN
-                            IF NOT EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = '${tableName}') THEN
-                                CREATE TABLE ${tableName} (
-                                    id SERIAL PRIMARY KEY,
-                                    """ + jsonColumn + """ JSONB
-                                );
-                            END IF;
-                        END \$\$;
-                    """
-
-                    def insertSQL = """
-                        INSERT INTO ${tableName} (${jsonColumn})
-                        SELECT jsonb_strip_nulls(pg_read_file('${jsonFile}')::jsonb);
-                    """
-
-                    container('postgres') {
-                        sh """
-                            export PGPASSWORD=${dbPassword}
-                            psql -U ${dbUser} -d ${dbName} -h ${dbHost} -p ${dbPort} -v ON_ERROR_STOP=1 -c "${sqlCommands}"
-                            psql -U ${dbUser} -d ${dbName} -h ${dbHost} -p ${dbPort} -v ON_ERROR_STOP=1 -c "${insertSQL}"
-                        """
-                    }
-                }
-            }
-        }
-
-
-
         stage('Owasp zap') {
             agent {
             kubernetes {
