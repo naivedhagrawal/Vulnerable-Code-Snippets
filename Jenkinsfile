@@ -88,6 +88,13 @@ pipeline {
                     zap-baseline.py -t $TARGET_URL -r $ZAP_REPORT -l WARN -I
                     mv /zap/wrk/${ZAP_REPORT} .
                 """
+                publishHTML (target : [allowMissing: false,
+                                alwaysLinkToLastBuild: true,
+                                keepAll: true,
+                                reportDir: '',
+                                reportFiles: 'zap-out.html',
+                                reportName: 'DAST',
+                                reportTitles: 'ZAP DAST Report'])
                 archiveArtifacts artifacts: "${env.ZAP_REPORT}"
             }
             }
