@@ -88,7 +88,7 @@ pipeline {
                     zap-baseline.py -t $TARGET_URL -J $ZAP_REPORT -l WARN -I
                     mv /zap/wrk/${ZAP_REPORT} .
                 """
-                publishReport name: "ZAP Report", displayType: "DAST", provider: json(pattern: "${env.ZAP_REPORT}")
+                publishReport name: "ZAP Report", displayType: "DAST", provider: zap(pattern: "${env.ZAP_REPORT}")
                 archiveArtifacts artifacts: "${env.ZAP_REPORT}"
             }
             }
